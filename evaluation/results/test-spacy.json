@@ -1,0 +1,137 @@
+{
+  "created_utc": "2026-09-05T12:35:48.205572+00:00",
+  "backend": "spacy",
+  "scope": "Synthetic text detection only; NOT PDF extraction/redaction timing or real-world accuracy.",
+  "dataset": {
+    "file": "test.jsonl",
+    "sha256": "6abfe46878e92e1c68d18b1818658fec331b75ae7607befae0b439486ad6c9d5",
+    "documents": 24,
+    "characters": 1440
+  },
+  "model": {
+    "name": "en_core_web_sm",
+    "revision_evidence": "3.8.0",
+    "files_sha256": {
+      "__init__.py": "c8eb57079c03fc4157c227f641781fbcb3e9d11439abe1bf0b72e4c0fa78a38d",
+      "en_core_web_sm-3.8.0\\accuracy.json": "e7572d7f2f3c18e9921471f9d0b3424f8cf7f1a909ae484fa10b780a13f4c676",
+      "en_core_web_sm-3.8.0\\attribute_ruler\\patterns": "f8b97f7ebef9b8536bba5f0fc1e73af6183563e96e2325bcbb021b8c6dbc6683",
+      "en_core_web_sm-3.8.0\\config.cfg": "65c545ca2da5bd4b87b22d4917318605360b37dee6ed6b18516a036f87319f79",
+      "en_core_web_sm-3.8.0\\lemmatizer\\lookups\\lookups.bin": "eb64f40c0f8396d1762730c0ddf4dad2a52d138f5a389f71a1a1d088173b7737",
+      "en_core_web_sm-3.8.0\\LICENSE": "3933c176979b68bc6d0bcc902c7d6c130f1d127f476f17ba5cdba8d99cfd0012",
+      "en_core_web_sm-3.8.0\\LICENSES_SOURCES": "20d9dfacd215112251f15341edd1a47b1f98bf393a212f10f194ffdc7ee98a90",
+      "en_core_web_sm-3.8.0\\meta.json": "7456349002fa8cf31111051bd37fdbea67a1b7f7a0a60ce235466f98a6758125",
+      "en_core_web_sm-3.8.0\\ner\\cfg": "a7172edadafba9f472e9ac0f2660eec04b6405e471be9e20267b79c67288d22d",
+      "en_core_web_sm-3.8.0\\ner\\model": "cd93e9ca9126c69f1d10a1039ef67c3d9ec1223b44d079856705970f0f19ff4e",
+      "en_core_web_sm-3.8.0\\ner\\moves": "d82b13473ebd33e0396004dd22f00c71fe3c1251742bf1f7c4554f23fd3b0af4",
+      "en_core_web_sm-3.8.0\\parser\\cfg": "e2a240ef01f95e58f5dd4c9d6e90d61f597b8d998966570d3009dd81e8879780",
+      "en_core_web_sm-3.8.0\\parser\\model": "e0098910535a863d430082ece57455d5fa071cd4ca3a0054e80582076c752b1e",
+      "en_core_web_sm-3.8.0\\parser\\moves": "ec41318c32eb7f9e4d8f050b2e8466ee67954d2d3455c1aec73abf46c82dd67f",
+      "en_core_web_sm-3.8.0\\README.md": "91b0ed1742ea0803034b4d769c4536e88d9d4da7808d833f2a804b6c54aae220",
+      "en_core_web_sm-3.8.0\\senter\\cfg": "2a4db4a729b6469da1f87d71cc7cd3ed2a73360cc85326821e850836c4671103",
+      "en_core_web_sm-3.8.0\\senter\\model": "b69e7174a0b6307739adec3c8053ac45fdbad7171c4d3d8bfcd9713ecbc01f8c",
+      "en_core_web_sm-3.8.0\\tagger\\cfg": "d484c3d9391f37bf9c727aa2eb4c477a24cb103020f95e52dc37842818b50118",
+      "en_core_web_sm-3.8.0\\tagger\\model": "1ec3d93f38cebe172f2b5c89d84be72856ce42c8f1a64f1699f1d98a771f36b7",
+      "en_core_web_sm-3.8.0\\tok2vec\\cfg": "f8a5a26e3056eb6fb06deeb3dbccfd88ae74900200c98c70b5966bbb7ec9d4de",
+      "en_core_web_sm-3.8.0\\tok2vec\\model": "e84fc06eb319c94d28e460fc334e292120b01f18baa5dc8b50c977459820a090",
+      "en_core_web_sm-3.8.0\\tokenizer": "b014e8bba4958b120af2d0c1c63eabb7c00379f2bacaf10df7c5325efd2ea467",
+      "en_core_web_sm-3.8.0\\vocab\\key2row": "76be8b528d0075f7aae98d6fa57a6d3c83ae480a8469e668d7b0af968995ac71",
+      "en_core_web_sm-3.8.0\\vocab\\lookups.bin": "fce9c883c56165f29573cc938c2a1c9d417ac61bd8f56b671dd5f7996de70682",
+      "en_core_web_sm-3.8.0\\vocab\\strings.json": "b1966d1f07a05b68576df07f43f40203b4e11124ad82cc839e8312ad8d7fdae7",
+      "en_core_web_sm-3.8.0\\vocab\\vectors": "14772b683e726436d5948ad3fff2b43d036ef2ebbe3458aafed6004e05a40706",
+      "en_core_web_sm-3.8.0\\vocab\\vectors.cfg": "ff4359091952c8cd16f1f0482f5770fb82d1707368d5cca3c46aa501f552e3c5",
+      "meta.json": "7456349002fa8cf31111051bd37fdbea67a1b7f7a0a60ce235466f98a6758125"
+    }
+  },
+  "machine": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.14",
+    "cpu": "Intel64 Family 6 Model 126 Stepping 5, GenuineIntel",
+    "logical_cpus": 8,
+    "device": "cpu",
+    "ram_bytes": 12640931840
+  },
+  "packages": {
+    "spacy": "3.8.16",
+    "transformers": "4.57.6",
+    "torch": "2.14.0",
+    "en-core-web-sm": "3.8.0",
+    "pdfplumber": "0.11.10",
+    "pymupdf": "1.28.2"
+  },
+  "source_sha256": {
+    "src\\smart_redactor\\detection\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src\\smart_redactor\\detection\\email.py": "bee0cbce524cffd38cb9ac78a600c2e0dd7ac501073ac1e7a6f17575e7664f96",
+    "src\\smart_redactor\\detection\\ner.py": "1b47d169bb3ed5e478223b00748f4e08b5ae9aacca773cf271141dbb24e1ad48",
+    "src\\smart_redactor\\detection\\structured.py": "34401a09bfe42b7e56d5075fbe7c9c4a2b818c6ef684aecdc93494845fd730bc"
+  },
+  "timing": {
+    "model_load_seconds": 4.825368699999672,
+    "warmup_excluded": true,
+    "runs_seconds": [
+      0.20643999999811058,
+      0.14965920000031474,
+      0.1434683999978006
+    ],
+    "median_seconds": 0.14965920000031474,
+    "repeats": 3
+  },
+  "metrics": {
+    "per_type": {
+      "EMAIL": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "support": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "PHONE": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 2,
+        "support": 6,
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8
+      },
+      "CREDIT_CARD": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "support": 4,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "ADDRESS": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 3,
+        "support": 7,
+        "precision": 0.8,
+        "recall": 0.5714285714285714,
+        "f1": 0.6666666666666666
+      },
+      "PERSON": {
+        "tp": 9,
+        "fp": 1,
+        "fn": 4,
+        "support": 13,
+        "precision": 0.9,
+        "recall": 0.6923076923076923,
+        "f1": 0.7826086956521738
+      }
+    },
+    "micro": {
+      "tp": 26,
+      "fp": 2,
+      "fn": 9,
+      "support": 35,
+      "precision": 0.9285714285714286,
+      "recall": 0.7428571428571429,
+      "f1": 0.8253968253968255
+    }
+  },
+  "policy": "Exact type/start/end per document; zero denominator -> 0; duplicates deduplicated; structured priority before PERSON; no threshold tuning."
+}

@@ -1,0 +1,6 @@
+{"id": "dev-001", "text": "Please contact Clara Whitmore at clara@example.org.", "entities": [{"type": "PERSON", "start": 15, "end": 29}, {"type": "EMAIL", "start": 33, "end": 50}]}
+{"id": "dev-002", "text": "Help desk: 202-555-0121. Test card 5555 5555 5555 4444.", "entities": [{"type": "PHONE", "start": 11, "end": 23}, {"type": "CREDIT_CARD", "start": 35, "end": 54}]}
+{"id": "dev-003", "text": "Delivery for Owen Fletcher: 18 Maple Road.", "entities": [{"type": "PERSON", "start": 13, "end": 26}, {"type": "ADDRESS", "start": 28, "end": 41}]}
+{"id": "dev-004", "text": "Public figures: revenue 123.45, year 2026, city London.", "entities": []}
+{"id": "dev-005", "text": "Ask Nora Bell or Nora Bell for the report.", "entities": [{"type": "PERSON", "start": 4, "end": 13}, {"type": "PERSON", "start": 17, "end": 26}]}
+{"id": "dev-006", "text": "International contact +44 20 7946 0123; office 7 High Street, London SW1A 1AA.", "entities": [{"type": "PHONE", "start": 22, "end": 38}, {"type": "ADDRESS", "start": 47, "end": 77}]}

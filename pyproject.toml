@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-document-redactor"
+version = "0.1.0"
+description = "Local PDF email redaction demo"
+requires-python = ">=3.13,<3.14"
+dependencies = ["pdfplumber==0.11.10", "PyMuPDF==1.28.2", "streamlit==1.63.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1"]
+ner = ["spacy==3.8.16", "transformers==4.57.6", "torch==2.14.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

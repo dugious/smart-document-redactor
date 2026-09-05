@@ -1,0 +1,6 @@
+SYNTHETIC TEST DATA — not real personal records
+Email: [EMAIL]
+Phone: [PHONE]
+Test card: [CREDIT_CARD]
+Experimental address: [ADDRESS]
+Public content: London, amount 123.45, date 2026-09-05

@@ -1,0 +1,6 @@
+SYNTHETIC TEST DATA — not real personal records
+Email: demo@example.com
+Phone: +1 202-555-0100
+Test card: 4111 1111 1111 1111
+Experimental address: 123 Example Street, Apt 4
+Public content: London, amount 123.45, date 2026-09-05

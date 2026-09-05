@@ -1,0 +1,4 @@
+SYNTHETIC DEMO — no real personal information
+Contact: demo@example.com
+Repeated: demo@example.com
+Public amount: 123.45 — keep this text

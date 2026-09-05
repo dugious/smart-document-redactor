@@ -1,0 +1,24 @@
+{"id": "test-001", "text": "Employee Alice Morgan submitted her report. Reply to alice.morgan@example.com.", "entities": [{"type": "PERSON", "start": 9, "end": 21}, {"type": "EMAIL", "start": 53, "end": 77}]}
+{"id": "test-002", "text": "The signed agreement lists Daniel Brooks as the reviewer.", "entities": [{"type": "PERSON", "start": 27, "end": 40}]}
+{"id": "test-003", "text": "Interview participants were Sofia Bennett and Marcus Reed.", "entities": [{"type": "PERSON", "start": 28, "end": 41}, {"type": "PERSON", "start": 46, "end": 57}]}
+{"id": "test-004", "text": "Emergency contact: Emily Carter, telephone +1 202-555-0100.", "entities": [{"type": "PERSON", "start": 19, "end": 31}, {"type": "PHONE", "start": 43, "end": 58}]}
+{"id": "test-005", "text": "Billing telephone (415) 555-0114 and backup 212.555.0198 ext. 21.", "entities": [{"type": "PHONE", "start": 18, "end": 32}, {"type": "PHONE", "start": 44, "end": 64}]}
+{"id": "test-006", "text": "Payment sandbox values: 4111 1111 1111 1111 and 378282246310005.", "entities": [{"type": "CREDIT_CARD", "start": 24, "end": 43}, {"type": "CREDIT_CARD", "start": 48, "end": 63}]}
+{"id": "test-007", "text": "Send the parcel to 123 Example Street, Apt 4.", "entities": [{"type": "ADDRESS", "start": 19, "end": 44}]}
+{"id": "test-008", "text": "The warehouse entrance is at 42 Cedar Avenue.", "entities": [{"type": "ADDRESS", "start": 29, "end": 44}]}
+{"id": "test-009", "text": "Forward to team+review@example.net; CC team+review@example.net.", "entities": [{"type": "EMAIL", "start": 11, "end": 34}, {"type": "EMAIL", "start": 39, "end": 62}]}
+{"id": "test-010", "text": "A message from Liam Hayes:\nPlease call 303-555-0173 tomorrow.", "entities": [{"type": "PERSON", "start": 15, "end": 25}, {"type": "PHONE", "start": 39, "end": 51}]}
+{"id": "test-011", "text": "Recipient: Grace Palmer\nAddress: 89 Willow Lane\nEmail: grace@example.org", "entities": [{"type": "PERSON", "start": 11, "end": 23}, {"type": "ADDRESS", "start": 33, "end": 47}, {"type": "EMAIL", "start": 55, "end": 72}]}
+{"id": "test-012", "text": "The public report mentions Paris, Berlin, 2025-04-12 and a balance of 987.65.", "entities": []}
+{"id": "test-013", "text": "Order IDs: 123456, 1234567890123456789012345. Version 3.13.14.", "entities": []}
+{"id": "test-014", "text": "This paragraph has no personal contact details or named individuals.", "entities": []}
+{"id": "test-015", "text": "Staff member Henry Sullivan approved the request from Chloe Turner.", "entities": [{"type": "PERSON", "start": 13, "end": 27}, {"type": "PERSON", "start": 54, "end": 66}]}
+{"id": "test-016", "text": "Call +44 20 7946 0958 for the international office.", "entities": [{"type": "PHONE", "start": 5, "end": 21}]}
+{"id": "test-017", "text": "Mobile contact without separators: 2025550182.", "entities": [{"type": "PHONE", "start": 35, "end": 45}]}
+{"id": "test-018", "text": "Postal delivery: 56 Oak Street, Boston, MA 02110.", "entities": [{"type": "ADDRESS", "start": 17, "end": 48}]}
+{"id": "test-019", "text": "Lowercase address entered by user: 81 pine road.", "entities": [{"type": "ADDRESS", "start": 35, "end": 47}]}
+{"id": "test-020", "text": "Mailbox routing: PO Box 123, Seattle, WA 98101.", "entities": [{"type": "ADDRESS", "start": 17, "end": 46}]}
+{"id": "test-021", "text": "Customer Isabella Quinn uses isabella@example.com. Test card 6011-1111-1111-1117.", "entities": [{"type": "PERSON", "start": 9, "end": 23}, {"type": "EMAIL", "start": 29, "end": 49}, {"type": "CREDIT_CARD", "start": 61, "end": 80}]}
+{"id": "test-022", "text": "Repeat participant Noah Ellis, then Noah Ellis.", "entities": [{"type": "PERSON", "start": 19, "end": 29}, {"type": "PERSON", "start": 36, "end": 46}]}
+{"id": "test-023", "text": "Please notify Maya Collins about the change to 67 Birch Drive, Unit 8.", "entities": [{"type": "PERSON", "start": 14, "end": 26}, {"type": "ADDRESS", "start": 47, "end": 69}]}
+{"id": "test-024", "text": "Accounting sample: 5555555555554444. Public subtotal 420.00.", "entities": [{"type": "CREDIT_CARD", "start": 19, "end": 35}]}

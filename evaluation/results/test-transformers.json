@@ -1,0 +1,116 @@
+{
+  "created_utc": "2026-09-05T12:36:05.716358+00:00",
+  "backend": "transformers",
+  "scope": "Synthetic text detection only; NOT PDF extraction/redaction timing or real-world accuracy.",
+  "dataset": {
+    "file": "test.jsonl",
+    "sha256": "6abfe46878e92e1c68d18b1818658fec331b75ae7607befae0b439486ad6c9d5",
+    "documents": 24,
+    "characters": 1440
+  },
+  "model": {
+    "name": "dslim/bert-base-NER",
+    "revision_evidence": [
+      "d1a3e8f13f8c3566299d95fcfc9a8d2382a9affc"
+    ],
+    "files_sha256": {
+      "config.json": "a5dc77a0d60dadf5645103017f3c7b8ece4ef1b450bc1ea68e17da1d3ae7e515",
+      "model.safetensors": "b04492186cfb45a64908487a17a9f8d6ddec3a403ef39db5bca688f0fa702a34",
+      "special_tokens_map.json": "303df45a03609e4ead04bc3dc1536d0ab19b5358db685b6f3da123d05ec200e3",
+      "tokenizer_config.json": "4c052d60b505817149a29e88c5292d7779ddecfadbfc6208729e61403ec558ba",
+      "vocab.txt": "eeaa9875b23b04b4c54ef759d03db9d1ba1554838f8fb26c5d96fa551df93d02"
+    }
+  },
+  "machine": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.14",
+    "cpu": "Intel64 Family 6 Model 126 Stepping 5, GenuineIntel",
+    "logical_cpus": 8,
+    "device": "cpu",
+    "ram_bytes": 12640931840
+  },
+  "packages": {
+    "spacy": "3.8.16",
+    "transformers": "4.57.6",
+    "torch": "2.14.0",
+    "en-core-web-sm": "3.8.0",
+    "pdfplumber": "0.11.10",
+    "pymupdf": "1.28.2"
+  },
+  "source_sha256": {
+    "src\\smart_redactor\\detection\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src\\smart_redactor\\detection\\email.py": "bee0cbce524cffd38cb9ac78a600c2e0dd7ac501073ac1e7a6f17575e7664f96",
+    "src\\smart_redactor\\detection\\ner.py": "1b47d169bb3ed5e478223b00748f4e08b5ae9aacca773cf271141dbb24e1ad48",
+    "src\\smart_redactor\\detection\\structured.py": "34401a09bfe42b7e56d5075fbe7c9c4a2b818c6ef684aecdc93494845fd730bc"
+  },
+  "timing": {
+    "model_load_seconds": 8.942989700000908,
+    "warmup_excluded": true,
+    "runs_seconds": [
+      2.0490921000018716,
+      2.427812999998423,
+      2.40544779999982
+    ],
+    "median_seconds": 2.40544779999982,
+    "repeats": 3
+  },
+  "metrics": {
+    "per_type": {
+      "EMAIL": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "support": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "PHONE": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 2,
+        "support": 6,
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8
+      },
+      "CREDIT_CARD": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "support": 4,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "ADDRESS": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 3,
+        "support": 7,
+        "precision": 0.8,
+        "recall": 0.5714285714285714,
+        "f1": 0.6666666666666666
+      },
+      "PERSON": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "support": 13,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "micro": {
+      "tp": 30,
+      "fp": 1,
+      "fn": 5,
+      "support": 35,
+      "precision": 0.967741935483871,
+      "recall": 0.8571428571428571,
+      "f1": 0.909090909090909
+    }
+  },
+  "policy": "Exact type/start/end per document; zero denominator -> 0; duplicates deduplicated; structured priority before PERSON; no threshold tuning."
+}
