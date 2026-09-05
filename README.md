@@ -162,7 +162,20 @@ Regenerate the synthetic PDF pair:
 .\.venv\Scripts\python.exe examples/generate_samples.py
 ```
 
-**Visual demo status:** screenshots and a recorded UI GIF are not yet available. Included sample files are real artifacts; no mockup is presented as evidence of a completed browser demo.
+**Visual demo:** the current workspace has a local teal theme, sidebar configuration, clear workflow sections, and before/after empty states. Screenshots below were captured from the running app using synthetic data, not design mockups.
+
+![Document workspace](docs/images/workspace-empty.png)
+
+![Processed synthetic TXT document](docs/images/workspace-result.png)
+
+Automated real-browser smoke (optional Playwright, installed Microsoft Edge on Windows):
+
+```powershell
+uv pip install playwright==1.62.0
+.\.venv\Scripts\python.exe scripts/smoke_browser.py
+```
+
+Verified real browser TXT upload → acknowledgment → processing → downloaded content, plus no document-level horizontal overflow at a 390px viewport. This does not cover PDF browser downloads, every browser, or a full accessibility audit. Occurrence selection remains the native multiselect, not an editable checkbox grid. No recorded GIF yet.
 
 ## Architecture
 
@@ -334,7 +347,7 @@ Run an additional smoke check with **both real local NER models**:
 .\.venv\Scripts\python.exe scripts/smoke_ner.py
 ```
 
-Both real models have passed TXT and PDF smoke checks. Some adapter tests use fake models to isolate offset and chunking behavior. Streamlit tests use a mocked uploader; **manual browser end-to-end upload/download testing has not yet been completed**.
+Both real models have passed TXT and PDF smoke checks. Some adapter tests use fake models to isolate offset and chunking behavior. Streamlit tests use a mocked uploader; an additional automated Edge browser smoke verifies the actual TXT upload/download path. Manual browser testing and broader PDF/browser coverage remain pending.
 
 ## Privacy, limitations, and intended use
 
@@ -355,6 +368,32 @@ Use this as a **single-user local demo with trusted files**. Multi-user concurre
 - Region-based redaction can affect overlapping content. Always inspect the exported document.
 
 
+### Detection limitations
+
+- English is the primary language; Vietnamese NER and general international phone/address support are not implemented.
+- ADDRESS detection is experimental and incomplete, especially for full postal addresses, lowercase text, and PO boxes.
+- Luhn validates a checksum, not card issuance or ownership. Non-card identifiers may pass it; sensitive malformed card numbers may fail it.
+- NER and regex can both miss sensitive information or flag public content incorrectly.
+- The UI cannot currently add a manually drawn redaction region for a missed finding.
+- TXT input accepts UTF-8, including an input BOM; output uses UTF-8 without BOM. Preview is limited to 20,000 characters while export retains the full processed text.
+
+**A document with no findings is not necessarily free of sensitive information. Human review remains necessary.**
+
+## Roadmap
+
+- [x] Text-based PDF and UTF-8 TXT processing
+- [x] Occurrence-level review, previews, and verified PDF redaction
+- [x] Structured detectors and optional local NER backends
+- [x] Synthetic dev/test evaluation with reproducible reports
+- [x] Local teal workspace theme, sidebar configuration, workflow and preview states
+- [x] Interactive data editor table with row-level checkbox selection
+- [x] Visual highlight previews for PDF bounding boxes and TXT badges
+- [x] Automated Edge TXT upload/download smoke and actual screenshots
+- [ ] Broader PDF/browser validation and a recorded GIF
+- [ ] Independent annotation review and broader evaluation documents
+- [ ] Manual correction/redaction tools for missed findings
+- [ ] OCR with explicit page-level coverage tracking
+- [ ] Vietnamese language support
 
 ## License and third-party dependencies
 

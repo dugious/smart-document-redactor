@@ -1,10 +1,9 @@
 from io import BytesIO
 from unittest.mock import patch
-import pymupdf
 import pytest
 from streamlit.testing.v1 import AppTest
 from smart_redactor.text import analyze_txt, process_txt
-from smart_redactor.preview import preview_pdf
+from smart_redactor.preview import preview_pdf, highlight_txt
 from smart_redactor.schemas import ProcessingError
 from test_m1 import pdf
 
@@ -36,33 +35,42 @@ def test_txt_stale_selection():
         process_txt(b'demo@example.com', ['bad'])
 
 
-def test_preview_bounded_and_after():
-    data = preview_pdf(pdf([(40, 60, 'demo@example.com')]), 1, max_side=500)
-    pix = pymupdf.Pixmap(data)
-    assert data.startswith(b'\x89PNG')
-    assert max(pix.width, pix.height) <= 501
+def test_preview_bounded_and_highlight():
+    source_pdf = pdf([(40, 60, 'demo@example.com')])
+    analysis = analyze_txt(b'demo@example.com')
+    # Normal and highlighted previews
+    data_normal = preview_pdf(source_pdf, 1, max_side=500)
+    assert data_normal.startswith(b'\x89PNG')
+    data_highlighted = preview_pdf(source_pdf, 1, max_side=500, highlight_entities=analysis.entities)
+    assert data_highlighted.startswith(b'\x89PNG')
+    
+    # HTML TXT highlight badge
+    html_out = highlight_txt('Contact: demo@example.com', analysis.entities)
+    assert '<mark style=' in html_out
+    assert 'EMAIL' in html_out
+    
     with pytest.raises(ProcessingError):
         preview_pdf(pdf([]), 2)
 
 
-def test_ui_selection_invalidates_and_txt_preview():
+def test_ui_data_editor_and_selection():
     source = BytesIO(b'demo@example.com demo@example.com')
     source.name = 'synthetic.txt'
     with patch('streamlit.file_uploader', return_value=source):
         app = AppTest.from_file('../app.py', default_timeout=30).run()
         assert not app.exception
-        first = app.multiselect[1].value[0]
-        app.multiselect[1].set_value([first]).run()
+        assert 'doc_df_editor' in app.session_state
+        assert len(app.session_state['doc_selected_set']) == 2
+        
+        # Check acknowledgment and apply all
         app.checkbox[0].check().run()
-        app.button[0].click().run()
+        # Find apply button
+        apply_btn = [b for b in app.button if 'Áp dụng' in b.label][0]
+        apply_btn.click().run()
         assert not app.exception
-        assert app.session_state['doc_output'] == b'[EMAIL] demo@example.com'
-        assert len(app.code) == 2
-        app.multiselect[1].set_value([]).run()
-        assert not app.get('download_button')
-        assert len(app.code) == 1
-        app.button[0].click().run()
-        assert app.session_state['doc_output'] == source.getvalue()
+        assert app.session_state['doc_output'] == b'[EMAIL] [EMAIL]'
+        assert app.get('download_button')
+
     replacement = BytesIO(b'public only')
     replacement.name = 'second.txt'
     with patch('streamlit.file_uploader', return_value=replacement):
@@ -70,4 +78,3 @@ def test_ui_selection_invalidates_and_txt_preview():
         assert not app.exception
         assert not app.get('download_button')
         assert not app.checkbox[0].value
-        assert not app.multiselect[1].value

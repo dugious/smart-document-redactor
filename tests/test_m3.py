@@ -59,13 +59,17 @@ def test_ui_type_filter():
     source.name = 'fake.txt'
     with patch('streamlit.file_uploader', return_value=source):
         app = AppTest.from_file('../app.py', default_timeout=30).run()
-        app.multiselect[0].set_value(['PHONE']).run()
-        assert len(app.multiselect[1].value) == 1
+        # Change type filter in sidebar
+        app.multiselect(key='doc_types').set_value(['PHONE']).run()
+        assert len(app.session_state['doc_selected_set']) == 1
         app.checkbox[0].check().run()
-        app.button[0].click().run()
+        apply_btn = [b for b in app.button if 'Áp dụng' in b.label][0]
+        apply_btn.click().run()
         assert not app.exception
         assert app.session_state['doc_output'] == b'[PHONE]\ndemo@example.com\n123 Example Street'
-        app.multiselect[0].set_value(['ADDRESS']).run()
+        
+        # Switch to ADDRESS
+        app.multiselect(key='doc_types').set_value(['ADDRESS']).run()
         assert not app.get('download_button')
-        assert len(app.multiselect[1].value) == 1
+        assert len(app.session_state['doc_selected_set']) == 1
         assert any('ADDRESS' in warning.value for warning in app.warning)

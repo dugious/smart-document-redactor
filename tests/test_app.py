@@ -19,9 +19,11 @@ def test_ui_upload_redact_download():
     with patch('streamlit.file_uploader', return_value=source):
         app = AppTest.from_file('../app.py', default_timeout=30).run()
         assert not app.exception
-        assert app.button[0].disabled
+        apply_btn = [b for b in app.button if 'Áp dụng' in b.label][0]
+        assert apply_btn.disabled
         app.checkbox[0].check().run()
-        app.button[0].click().run()
+        apply_btn = [b for b in app.button if 'Áp dụng' in b.label][0]
+        apply_btn.click().run()
         assert not app.exception
         assert app.get('download_button')
         assert app.session_state['doc_output'].startswith(b'%PDF-')

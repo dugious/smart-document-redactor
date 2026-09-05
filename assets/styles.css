@@ -1,0 +1,22 @@
+/* Local styles only. Native widgets retain keyboard/focus behavior. */
+.stApp { background: #f5f8f8; }
+[data-testid="stMainBlockContainer"] { max-width: 1280px; padding-top: 2.5rem; padding-bottom: 4rem; }
+[data-testid="stSidebar"] { background: #edf3f2; border-right: 1px solid #d5e3e0; }
+h1, h2, h3 { letter-spacing: -0.035em; color: #143c37; }
+.hero { padding: 8px 0 24px; }
+.eyebrow { color: #176b5e; font-size: .76rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.hero h1 { font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1.12; margin: 12px 0; }
+.hero p { color: #4d6661; font-size: 1.05rem; max-width: 650px; line-height: 1.7; }
+.local-pill { display: inline-block; border: 1px solid #b4d7ce; background: #e5f4ee; color: #165947; border-radius: 99px; padding: 5px 12px; font-size: .78rem; font-weight: 600; }
+.workflow { display: flex; gap: 12px; margin: 8px 0 24px; flex-wrap: wrap; }
+.step { flex: 1; min-width: 160px; padding: 14px 18px; background: #fff; border: 1px solid #dce7e4; border-radius: 12px; color: #45615b; font-size: .9rem; }
+.step strong { color: #087f6c; margin-right: 10px; }
+.empty-card { padding: 32px; border: 1px dashed #afc8c1; border-radius: 16px; background: #fff; color: #45615b; min-height: 180px; }
+.empty-card h3 { margin-top: 0; font-size: 1.15rem; }
+[data-testid="stFileUploader"] { background: #fff; border: 1px solid #dce7e4; padding: 20px; border-radius: 16px; }
+[data-testid="stMetric"] { background: #fff; border: 1px solid #dce7e4; border-radius: 14px; padding: 18px 22px; }
+[data-testid="stMetricValue"] { color: #146c5c; font-variant-numeric: tabular-nums; }
+[data-testid="stDataFrame"], [data-testid="stCode"] { border-radius: 12px; overflow: hidden; }
+[data-testid="stButton"] button, [data-testid="stDownloadButton"] button { border-radius: 10px; min-height: 44px; font-weight: 600; }
+button:focus-visible, input:focus-visible { outline: 3px solid #237fbd !important; outline-offset: 3px; }
+@media (max-width: 640px) { .empty-card { padding: 20px; } .workflow { gap: 6px; } .step { min-width: 100%; } }
