@@ -1,155 +1,391 @@
 # Smart Document Redactor
 
-## M4 — PERSON NER (đã triển khai)
+**Review sensitive information before sharing a document.**
 
-UI chọn Regex only (mặc định), spaCy hoặc Transformers; chỉ chạy một backend NER. PERSON bật mặc định khi chọn NER. Đổi backend/model reset analysis, lựa chọn và output. Structured regex giữ nguyên ở cả hai backend. NER không chuyển LOC thành ADDRESS.
+A local-first Python application that detects personally identifiable information (PII) in text-based PDFs and UTF-8 text files, lets users review individual findings, and exports redacted documents.
 
-Máy hiện tại đã cài và chạy model thật trên Python 3.13.14: spaCy 3.8.16 + en_core_web_sm 3.8.0; Transformers 4.57.6 + torch 2.14.0 CPU + dslim/bert-base-NER local. Dependencies NLP tùy chọn:
+Built with **Streamlit · spaCy · Hugging Face Transformers · pdfplumber · PyMuPDF · pytest**.
+
+> **Scope:** English-language portfolio MVP, tested on Windows with Python 3.13.14. This is a risk-reduction tool—not a comprehensive PDF sanitizer, a guarantee of complete PII detection, or a claim of GDPR compliance.
+
+## Overview
+
+Sharing reports, correspondence, or sample documents can unintentionally expose names and contact details. Smart Document Redactor combines structured pattern detection with optional named entity recognition, while keeping the user in control of what is removed.
+
+The project focuses on three engineering concerns:
+
+- **Occurrence-level control:** redact one occurrence without automatically removing every identical string.
+- **Actual PDF redaction:** remove selected text through PyMuPDF's redaction API rather than merely covering it visually.
+- **Verifiable behavior:** test extraction, detection, mapping, selection, and output verification independently.
+
+## Features
+
+- Upload text-based **PDF** or **UTF-8 TXT** files.
+- Choose **regex only**, **spaCy**, or **Transformers**; only the selected NER backend runs.
+- Inspect entity type, content, page, offsets, detection source, and confidence when available.
+- Enable detection categories and select individual occurrences for removal.
+- Preview PDFs before and after processing, one page at a time.
+- Preview TXT replacements and export labels such as `[PERSON]` and `[EMAIL]`.
+- View detection and selection counts by entity type.
+- Invalidate stale output when the document, backend, or selection changes.
+- Reject unsupported input or failed PDF verification rather than silently returning a successful result.
+- Process documents locally without calling an external inference API.
+
+### Supported entities
+
+| Entity | Detection method | Support boundary |
+|---|---|---|
+| `PERSON` | spaCy or Transformers NER | English names; requires an installed local model |
+| `EMAIL` | Regex and syntax checks | Conservative ASCII email patterns; not a complete RFC parser |
+| `PHONE` | Regex and structural checks | Formatted North American numbers, optionally with extensions |
+| `CREDIT_CARD` | Regex and Luhn validation | 13–19 digits; checksum validity does not prove a number is a real card |
+| `ADDRESS` | Experimental regex | Selected US-style street-address patterns; opt-in in the UI |
+
+Locations, amounts, dates, and arbitrary numbers are **not automatically classified as sensitive information**. False positives and false negatives remain possible.
+
+## Quick start
+
+### Requirements
+
+- **Python 3.13** — verified with 3.13.14; the package currently requires `>=3.13,<3.14`.
+- [uv](https://docs.astral.sh/uv/) or Python's built-in `venv` and `pip`.
+- Internet access for initial dependency/model installation only.
+
+The commands below use **Windows PowerShell**, the tested environment. Other operating systems have not been validated.
+
+### 1. Install the core application
+
+Download or clone this repository, then run from its root directory:
 
 ```powershell
-uv pip install -e ".[dev,ner]"
-uv pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
-.\.venv\Scripts\python.exe scripts/download_transformers.py
-.\.venv\Scripts\python.exe scripts/smoke_ner.py
+cd smart-document-redactor
+uv venv --python 3.13
+uv pip install -e ".[dev]"
 ```
 
-Hai lệnh tải model cần mạng và không nhận tài liệu người dùng. App chỉ load spaCy đã cài và Transformers từ thư mục local `models/bert-base-NER`, `local_files_only=True`, `trust_remote_code=False`, safetensors. Không tải model ngầm hoặc fallback sang regex rồi giả vờ đã kiểm tra PERSON. Model thiếu/lỗi chặn luồng với thông báo rõ. Cache resource chỉ giữ model; tài liệu ở session memory riêng. Không chia sẻ ứng dụng localhost cho nhiều người dùng; concurrency nhiều phiên chưa kiểm thử.
-
-`requirements-ner-lock.txt` là snapshot môi trường NLP Windows; `requirements-lock.txt` vẫn là snapshot core không NER. Không commit thư mục models. Download script đã pin commit `d1a3e8f13f8c3566299d95fcfc9a8d2382a9affc`; report M5 chứa hashes file model thực tế.
-
-spaCy chunk 8000 ký tự, overlap 400; Transformers cửa sổ tối đa 1600 ký tự rồi thu nhỏ theo số token thật và context limit, overlap tối đa 200. Không silently truncate input quá context. Offset được cộng lại theo trang; dedupe/overlap ưu tiên structured trước PERSON và longest-span. **Overlap không bảo đảm tên vượt ranh giới chunk được nhận đầy đủ**; có thể thiếu ngữ cảnh hoặc dự đoán mảnh tên. spaCy confidence null; Transformers dùng score của aggregated entity, không phải probability đã calibration.
-
-Xác minh M4: **72 pytest tests passed**, dependency check/compileall passed. Test adapter chunks/offsets dùng model giả lập; **đã chạy thêm hai model thật qua TXT và PDF** bằng `scripts/smoke_ner.py`, kiểm tra tên mục tiêu bị loại và địa danh không bị xóa. Smoke này không phải precision/recall benchmark hoặc browser E2E. Transformers báo pooler weights không dùng khi load token classifier; inference và redaction smoke vẫn pass.
-
-Pipeline NER nằm tại `src/smart_redactor/detection/ner.py`, tests `tests/test_m4.py`. Kết quả M5 đã chạy thật: xem phần đánh giá và `evaluation/README.md`.
-
-
-Công cụ local giúp rà soát tài liệu trước khi chia sẻ. **M3 phát hiện EMAIL, PHONE Bắc Mỹ, CREDIT_CARD qua Luhn và ADDRESS thử nghiệm trong PDF/TXT UTF-8**. Không phải hệ thống kiểm tra tất cả PII hay chứng nhận bảo mật/GDPR.
-
-## M3 — structured PII
-
-- Bộ chọn nhóm mặc định bật EMAIL, PHONE, CREDIT_CARD; ADDRESS phải bật chủ động. Bảng thống kê theo loại và lựa chọn từng occurrence. Thay nhóm reset danh sách occurrence về tất cả kết quả thuộc nhóm mới và hủy output cũ.
-- PHONE: chỉ NANP/Bắc Mỹ có dấu phân cách, area/exchange bắt đầu 2–9, có thể có mã +1 và extension. Không nhận số trần 10 chữ số hoặc mọi số quốc tế. Đây là kiểm tra cấu trúc, không xác minh số có thật/được cấp phát.
-- CREDIT_CARD: 13–19 chữ số ASCII, có thể cách bởi space/hyphen, kiểm tra checksum Luhn và loại chuỗi một chữ số lặp. Luhn không xác minh issuer hoặc tài khoản; ID không phải thẻ vẫn có thể vượt qua checksum. Chuỗi sai checksum có thể vẫn nhạy cảm nhưng không được phát hiện.
-- ADDRESS (thử nghiệm): số nhà + 1–4 từ tên đường viết hoa đầu từ + hậu tố Street/St/Road/Rd/Avenue/Ave/Lane/Ln/Drive/Dr/Boulevard/Blvd/Court/Ct, tùy chọn Apt/Suite/Unit. Không nhận đầy đủ city/state/ZIP, PO box, địa chỉ quốc tế hoặc địa chỉ lowercase; có false positives. Địa danh đơn lẻ không tự động là PII.
-- Overlap xử lý trước bộ lọc nhóm: CREDIT_CARD > EMAIL > PHONE > ADDRESS; cùng ưu tiên chọn span dài hơn, rồi start sớm hơn và tie-break cố định. Trùng span bị loại; span kề nhau được giữ. Không gộp vùng. Bỏ một nhóm không diễn giải lại span bị nhóm đó lấn át thành loại khác.
-- Tất cả detector structured dùng `source=regex`, confidence null. Chưa có NER. Giới hạn PHONE/ADDRESS nhằm giữ phạm vi vừa sức, không phải hỗ trợ tiếng Anh toàn cầu.
-- Logic: `src/smart_redactor/detection/structured.py`; tests bổ sung `tests/test_m3.py`. Không thêm dependencies.
-
-Kết quả kiểm tra sau M3: **65 tests passed** trên Python 3.13.14 / Windows. Đã test integration cả bốn loại qua PDF redaction và TXT labels, Luhn hợp lệ/sai, số tiền/ngày/địa danh không bị coi là PII, overlap và bộ lọc nhóm UI. Chưa chạy browser E2E thủ công hoặc benchmark trên tập gán nhãn.
-
-## M2 — duyệt và preview
-
-- Upload PDF hoặc TXT; bảng hiển thị entity ID, nội dung, trang, offset, nguồn và confidence null.
-- Chọn từng occurrence qua multiselect; các nhóm EMAIL, PHONE, CREDIT_CARD mặc định bật, ADDRESS tùy chọn ở M3.
-- Thống kê số phát hiện và đã chọn theo từng nhóm. Chọn rỗng xuất bản không thay thế dữ liệu, có cảnh báo rõ.
-- Nút **Áp dụng các lựa chọn** tạo output. Đổi lựa chọn lập tức gỡ output/download cũ; đổi file reset lựa chọn và xác nhận giới hạn.
-- PDF preview render một trang trước/sau bằng PNG, kích thước giới hạn; không gửi PDF lên viewer ngoài. Preview này không phải chứng minh sanitization.
-- TXT preview trước/sau giới hạn 20.000 ký tự; download vẫn đủ nội dung. UTF-8/UTF-8 BOM được chấp nhận, output UTF-8 không BOM; giữ Unicode và CRLF trong nội dung. Giới hạn 300.000 ký tự và 10 MiB; encoding khác hoặc control characters không hỗ trợ bị từ chối.
-- TXT thay span đã chọn bằng `[EMAIL]` từ các lát cắt input không đổi, không global replace. Không dùng kiểm tra absence toàn cục cho TXT vì occurrence không chọn phải được giữ.
-- Phân tích được giữ riêng trong Streamlit session memory, không dùng shared cache. Preview chứa PII, cần chú ý người nhìn màn hình.
-- `src/smart_redactor/text.py`: decode/detection/replacement TXT. `preview.py`: renderer PNG một trang. `tests/test_m2.py`: TXT Unicode/CRLF/BOM, duplicate selection, encoding lỗi, bounded preview, UI invalidation và thay file.
-
-Kết quả kiểm tra sau M2: **40 tests passed** trên Python 3.13.14 / Windows. Đây là functional tests, không phải precision/recall benchmark; chưa kiểm thử browser upload/download thủ công.
-
-## Chạy nhanh (Windows PowerShell)
-
-Đã kiểm tra trên Windows, Python **3.13.14**. Chọn bản mới đang có trên máy thay Python 3.11 theo yêu cầu; chưa kiểm tra Python 3.14 hoặc khả năng tương thích NER ở milestone sau.
+Alternatively, install the recorded core dependency snapshot:
 
 ```powershell
-cd C:\Users\DELL\smart-document-redactor
-uv venv --python 3.13
 uv pip install -r requirements-lock.txt
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe examples/generate_samples.py
+```
+
+Without uv:
+
+```powershell
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
+
+### 2. Start the application
+
+```powershell
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
-Không có uv: dùng Python 3.13 tạo `python -m venv .venv`, sau đó `.\.venv\Scripts\python.exe -m pip install -e ".[dev]"`. Dependency trực tiếp được pin trong pyproject; requirements-lock.txt là snapshot dependency đầy đủ trên Windows, không phải lock đa nền tảng có hash.
+Open **http://127.0.0.1:8501**.
 
-Mở http://127.0.0.1:8501, upload `examples/synthetic-input.pdf`, xem danh sách, chọn các occurrences cần che, xác nhận giới hạn, chọn **Áp dụng các lựa chọn**, xem preview rồi tải output. Server chỉ bind localhost; telemetry Streamlit tắt trong `.streamlit/config.toml`. Chạy từ root project để nạp cấu hình.
+Run from the repository root so Streamlit loads `.streamlit/config.toml`. The checked-in configuration binds the server to localhost and disables Streamlit usage statistics.
 
-M1 không tải model. Cài thư viện cần mạng; xử lý không gọi API bên ngoài. Không cache tài liệu toàn cục, không chủ động ghi upload hoặc nội dung PII vào log. Bytes được giữ trong session memory; không có cam kết xóa an toàn RAM/swap/browser cache. Chỉ script examples chủ động ghi tài liệu giả ra đĩa.
+**Regex-only mode does not require NLP models.** To detect names, follow the optional setup below.
 
-## Pipeline
+### 3. Install optional NER backends
 
-```text
-Upload PDF bytes
-  → limits / encrypted / geometry / scan checks
-  → pdfplumber chars → page text + per-character boxes
-  → regex email + conservative syntax validation
-  → exact span → per-line boxes
-  → PyMuPDF redaction annotations → apply_redactions
-  → new PDF bytes (garbage=4, deflate=True, non-incremental)
-  → reopen / text extraction / region verification
-  → download
+```powershell
+uv pip install -e ".[dev,ner]"
 ```
 
-Giao diện nằm ở `app.py`; logic độc lập trong `src/smart_redactor/`. Không database, authentication hay service backend riêng.
+Install the spaCy model explicitly:
 
-## Quyết định kỹ thuật
+```powershell
+uv pip install "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+```
 
-- Offset `[start,end)` theo từng trang; page bắt đầu từ 1. Entity có `entity_id, type, text, start, end, page, boxes, source, confidence`.
-- Text và bảng tọa độ sinh cùng nhau từ pdfplumber chars. Ký tự phân cách tổng hợp có box null. Không tìm chuỗi toàn cục để che mọi lần xuất hiện.
-- Entity ID dựa vào trang và offset, chỉ có nghĩa trong tài liệu đó. Pipeline phân tích lại bytes trước khi xuất để không tin boxes cũ từ UI.
-- Mapper gom ký tự gần nhau trên cùng dòng; nhiều dòng có nhiều rectangle. Không dùng rectangle lớn bao trùm cả vùng giữa các dòng.
-- M3 xử lý overlap theo thứ tự ưu tiên công bố ở trên; có unit test cho trùng lặp, chồng lấn và adjacency.
-- Confidence regex là null. Không có confidence được bịa cho NER chưa triển khai.
-- Redaction loại text thật bằng `apply_redactions`, không chỉ phủ màu. Pixel ảnh chồng vùng được xử lý theo chế độ PyMuPDF images=2; vector artwork không xóa.
-- Kiểm tra lại: khi mọi occurrence của một giá trị được chọn, kiểm tra giá trị không còn trong text toàn tài liệu; luôn kiểm tra vùng mục tiêu rỗng. Entity không chọn phải còn ở vùng của nó. API và UI M2 hỗ trợ lựa chọn occurrence riêng.
-- File lỗi/mapping lỗi/verification lỗi: dừng, không trả PDF thành công. PDF có annotation redaction tồn tại sẵn bị từ chối để không áp dụng nhầm vùng người dùng chưa chọn.
+Download the Transformers model explicitly:
 
-## Ví dụ giả
+```powershell
+.\.venv\Scripts\python.exe scripts/download_transformers.py
+```
 
-Input chứa `demo@example.com` hai lần và `Public amount: 123.45 - keep this text`. Output mẫu loại bỏ hai email, giữ câu công khai. Mở hai PDF trong `examples/` để đối chiếu. Ảnh/GIF thao tác UI chưa ghi; không dùng ảnh giả làm bằng chứng đã demo.
+| Backend | Model field in the UI |
+|---|---|
+| spaCy | `en_core_web_sm` |
+| Transformers | `models/bert-base-NER` |
 
-## Test
+The download script pins `dslim/bert-base-NER` to commit `d1a3e8f13f8c3566299d95fcfc9a8d2382a9affc`. Inference loads local files only, uses safetensors for the Transformers model, and does not enable remote model code. Missing models produce an error; the application does not silently fall back to regex while claiming to have checked names.
 
-`tests/test_m1.py`: email và dấu câu, cú pháp sai, redaction end-to-end, hai occurrence cùng chuỗi (khác dòng/hai cột), che một occurrence, nhiều dòng mapping, missing mapping, no PII, scan/mixed scan, blank, dung lượng, số trang, encrypted, rotated/cropped, annotation có sẵn và verification failure.
+`requirements-ner-lock.txt` records the tested NLP environment. Both dependency snapshots are Windows environment snapshots, **not cross-platform, hash-locked dependency manifests**. Model weights are excluded from Git.
 
-`tests/test_app.py`: initial render, mocked upload → xác nhận → xử lý → download control, thay file lỗi không giữ output cũ, verification fail đóng luồng, cảnh báo ảnh kèm text. Đây là Streamlit AppTest với uploader mock, **không thay thế browser E2E cho thao tác upload/download thật**.
+## Usage and demo
 
-Fixture chỉ dùng dữ liệu tổng hợp. Test multiline kiểm tra mapper, không tuyên bố detector tự nối email bị ngắt dòng.
+1. Select a backend. Start with **Regex only** for the quickest demo.
+2. Upload a sample document from `examples/`.
+3. Choose entity categories. Enable `ADDRESS` explicitly if needed.
+4. Review the findings and deselect occurrences you want to retain.
+5. Acknowledge the processing limitations and apply the selection.
+6. Inspect the before/after preview and download the output.
 
-## Giới hạn quan trọng
+Changing categories resets occurrence selection to the findings in the new categories. Changing selections removes the previous output until processing is applied again. Selecting no findings exports without removing detected entities and displays a warning.
 
-- 10 MiB, 50 trang, 300.000 glyph. Giới hạn glyph được kiểm tra sau khi parser đọc trang: không phải sandbox chống PDF độc hại hoặc decompression bomb. Chỉ demo file đáng tin cậy.
-- Từ chối PDF mã hóa, rotation/crop/nonzero origin, glyph quay/chồng lấn/encoding không hỗ trợ. Thiết kế bảo thủ có thể từ chối cả tài liệu hợp lệ.
-- Trang không có text nhưng có ảnh/vector bị từ chối vì không kiểm tra được; trang trắng được chấp nhận. Trang có text kèm ảnh/vector cảnh báo coverage không đầy đủ. Heuristic này không phải detector scan toàn diện.
-- Reading order dựa hàng hình học: chưa giải quyết layout nhiều cột tổng quát. Test hai cột chỉ chứng minh mapping hai email đơn giản. Font phức tạp, ligature, kerning, text ẩn, nội dung ngoài cấu trúc parser hiểu có thể thiếu hoặc gây từ chối.
-- Regex email ASCII bảo thủ; không RFC-complete, không DNS; không email quốc tế hoặc tự nối email xuống dòng. **False negative vẫn có thể xảy ra.** PERSON được hỗ trợ ở M4 khi bật NER; PHONE/CARD/ADDRESS có các giới hạn riêng ở phần đầu README.
-- Trích xuất lại text là kiểm tra giới hạn, không chứng minh PDF đã được sanitize toàn diện. Metadata, annotations, attachments, form fields, ảnh và các content layer khác **chưa được làm sạch đầy đủ**; có thể chứa PII. Garbage collection không thay thế sanitization.
-- Redaction theo vùng có thể ảnh hưởng ký tự/nội dung chồng nhau. Output cần được người dùng xem lại; không cam kết bảo toàn layout hoàn hảo.
-- PyMuPDF có điều khoản AGPL/commercial: kiểm tra license hiện hành trước khi phân phối hoặc dùng thương mại. Project chưa đặt license riêng.
+### Included examples
 
-## Đánh giá và roadmap
+| File | Purpose |
+|---|---|
+| [`examples/synthetic-input.pdf`](examples/synthetic-input.pdf) | PDF with repeated email occurrences |
+| [`examples/synthetic-redacted.pdf`](examples/synthetic-redacted.pdf) | Verified redacted PDF example |
+| [`examples/synthetic-input.txt`](examples/synthetic-input.txt) | TXT occurrence-selection example |
+| [`examples/structured-input.txt`](examples/structured-input.txt) | Email, phone, sandbox card, and experimental address |
+| [`examples/structured-redacted.txt`](examples/structured-redacted.txt) | Corresponding labeled TXT output |
 
-| Backend | Dataset | Precision / Recall / F1 | Runtime |
-|---|---|---|---|
-| spaCy + regex | 24 synthetic test docs, 35 entities | micro 92.86% / 74.29% / 82.54% | median 0.150s / dataset |
-| Transformers + regex | cùng tập test | micro 96.77% / 85.71% / 90.91% | median 2.405s / dataset |
+Example input, using synthetic data:
 
-**Đã đo, không phải số mục tiêu.** PERSON F1: spaCy 78.26%, Transformers 100% nhưng chỉ có 13 PERSON gold — không suy rộng sang tài liệu thực tế. 6 dev / 24 test, 1.440 ký tự test; không fine-tune, không tune sau xem test. PHONE và ADDRESS có false negatives được giữ nguyên trong đánh giá.
+```text
+Email: demo@example.com
+Phone: +1 202-555-0100
+Test card: 4111 1111 1111 1111
+Experimental address: 123 Example Street, Apt 4
+Public content: London, amount 123.45, date 2026-09-05
+```
 
-Chi tiết precision/recall/F1 từng loại, counts, model revision, machine và giới hạn: [evaluation/README.md](evaluation/README.md). Raw reports tại `evaluation/results/`, có hashes dataset/source/model. CPU Windows11/Python3.13.14, 8 logical CPUs, ~11.77GiB RAM; warmup excluded, 3 inference runs, model load tách riêng. Không phải timing PDF redaction/UI.
+Output when all four applicable categories and findings are selected:
+
+```text
+Email: [EMAIL]
+Phone: [PHONE]
+Test card: [CREDIT_CARD]
+Experimental address: [ADDRESS]
+Public content: London, amount 123.45, date 2026-09-05
+```
+
+Regenerate the synthetic PDF pair:
+
+```powershell
+.\.venv\Scripts\python.exe examples/generate_samples.py
+```
+
+**Visual demo status:** screenshots and a recorded UI GIF are not yet available. Included sample files are real artifacts; no mockup is presented as evidence of a completed browser demo.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Upload PDF or TXT] --> B[Validate input and support boundaries]
+    B --> C[Extract text and PDF character coordinates]
+    C --> D[Structured regex detectors]
+    C --> E[Optional spaCy OR Transformers PERSON NER]
+    D --> F[Normalize entities and resolve overlaps]
+    E --> F
+    F --> G[Map PDF spans to per-line bounding boxes]
+    G --> H[User reviews categories and occurrences]
+    H --> I{Document type}
+    I -->|PDF| J[Apply real redactions and save new PDF]
+    J --> K[Reopen and verify extracted text and regions]
+    I -->|TXT| L[Replace selected spans with type labels]
+    K --> M[Preview and download]
+    L --> M
+```
+
+Streamlit handles presentation and session state. Processing logic is independent of the UI; there is no database, authentication service, vector store, or separate API server.
+
+### Project structure
+
+```text
+smart-document-redactor/
+├── app.py                         # Streamlit interface
+├── src/smart_redactor/
+│   ├── schemas.py                 # Shared entity and document types
+│   ├── pipeline.py                # PDF analysis and processing orchestration
+│   ├── text.py                    # UTF-8 TXT analysis and replacement
+│   ├── preview.py                 # Bounded, single-page PDF rendering
+│   ├── evaluation.py              # Exact entity-level metrics
+│   ├── extraction/pdf.py          # PDF validation and character mapping
+│   ├── detection/
+│   │   ├── email.py
+│   │   ├── structured.py          # Validation and overlap policy
+│   │   └── ner.py                 # Local model adapters and chunking
+│   └── redaction/
+│       ├── pdf.py
+│       └── verification.py
+├── tests/                         # Unit, integration, and AppTest coverage
+├── examples/                      # Synthetic documents and outputs
+├── scripts/                       # Explicit model setup and smoke checks
+├── evaluation/                    # Gold datasets, runner, and reports
+├── .streamlit/config.toml
+├── pyproject.toml
+├── requirements-lock.txt
+└── requirements-ner-lock.txt
+```
+
+### Entity contract
+
+```text
+entity_id, type, text, start, end, page, boxes, source, confidence
+```
+
+- Offsets use half-open intervals `[start, end)` within each PDF page or the full TXT text.
+- PDF pages are numbered from 1; TXT page is `null`.
+- Each occurrence has a document-scoped ID. Identical strings at different positions remain separate findings.
+- PDF entities may have multiple boxes, particularly across lines; TXT entities have no boxes.
+- Sources distinguish `regex`, `spacy`, and `transformers`.
+- Regex and spaCy confidence values are `null`. Transformers retains the aggregated entity score, which is **not a calibrated probability**.
+
+## Engineering decisions and trade-offs
+
+### Map occurrences, not global string matches
+
+PDF text and its character-coordinate map are built together from pdfplumber characters. Selected spans map directly to those characters instead of searching every occurrence of a string. Boxes are grouped by line and proximity rather than creating one large rectangle across unrelated content.
+
+This provides precise occurrence control on supported layouts, but geometric row ordering is not a complete solution for complex PDF reading order.
+
+### Resolve overlaps deterministically
+
+The priority order is:
+
+```text
+CREDIT_CARD → EMAIL → PHONE → ADDRESS → PERSON
+```
+
+Within the same priority, longer spans win, followed by earlier offsets and deterministic tie-breaking. Duplicate spans are removed; adjacent spans remain distinct. Regions are not merged indiscriminately.
+
+Resolution happens before the UI category filter. Disabling a higher-priority category does not reinterpret its suppressed overlap as another category.
+
+### Remove PDF text, then verify
+
+Selected regions are applied through PyMuPDF redaction annotations and `apply_redactions`. Output is serialized into a new, non-incremental PDF using `garbage=4` and `deflate=True`.
+
+Verification reopens the output and checks:
+
+- Selected target regions contain no extractable text.
+- A selected value is absent globally when every detected occurrence of that value was selected.
+- Unselected detected entities remain in their corresponding regions.
+
+This avoids treating an intentionally retained duplicate as a failed redaction. Mapping or verification failures block successful output. PDFs containing existing redaction annotations are rejected to avoid applying unrelated pre-existing regions.
+
+**Text verification and garbage collection do not prove comprehensive PDF sanitization.**
+
+### Keep NER optional and bound model input
+
+spaCy uses overlapping character windows. Transformers starts with bounded character windows and shrinks them against the actual token limit before inference, rather than silently truncating overlength input. Offsets are restored to the source text and duplicate results are resolved.
+
+Overlap improves boundary context but does not guarantee complete recognition of entities crossing chunk boundaries. Structured detectors remain identical across the two NER configurations.
+
+## Evaluation
+
+The initial evaluation uses **6 synthetic dev documents and 24 synthetic test documents**. The test split contains **1,440 characters and 35 gold entities**, including 13 `PERSON` entities. No model fine-tuning was performed, so no training split is included.
+
+Gold spans were authored separately from detector predictions. Person names and complete texts differ across splits, but related synthetic patterns remain. Known unsupported phone/address cases are retained rather than excluded to improve scores.
+
+### Observed entity-level results
+
+Exact type-and-span matching; values are percentages.
+
+| Entity | Gold count | spaCy Precision | spaCy Recall | spaCy F1 | Transformers Precision | Transformers Recall | Transformers F1 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| PERSON | 13 | 90.00 | 69.23 | 78.26 | 100.00 | 100.00 | 100.00 |
+| EMAIL | 5 | 100.00 | 100.00 | 100.00 | 100.00 | 100.00 | 100.00 |
+| PHONE | 6 | 100.00 | 66.67 | 80.00 | 100.00 | 66.67 | 80.00 |
+| CREDIT_CARD | 4 | 100.00 | 100.00 | 100.00 | 100.00 | 100.00 | 100.00 |
+| ADDRESS | 7 | 80.00 | 57.14 | 66.67 | 80.00 | 57.14 | 66.67 |
+| **Micro overall** | **35** | **92.86** | **74.29** | **82.54** | **96.77** | **85.71** | **90.91** |
+
+> Transformers matched all 13 PERSON entities in this small synthetic test. This does **not** imply perfect accuracy on real documents. The dataset is not independently annotated, representative, or a substitute for production validation.
+
+### Observed timing
+
+| Backend | Model load | Median detection time for all 24 documents |
+|---|---:|---:|
+| spaCy | 4.825 s | 0.150 s |
+| Transformers, CPU | 8.943 s | 2.405 s |
+
+Measured on Windows 11 build 26200, Python 3.13.14, CPU reported as `Intel64 Family 6 Model 126 Stepping 5, GenuineIntel`, 8 logical CPUs, and approximately 11.77 GiB RAM. Detection timing is the median of three sequential runs after a fixed warmup; model loading is measured separately. It includes regex, NER, and overlap resolution—not PDF extraction/redaction, UI rendering, or model-file hashing.
+
+Models: spaCy 3.8.16 with `en_core_web_sm` 3.8.0; Transformers 4.57.6 with torch 2.14.0 and the pinned `dslim/bert-base-NER` revision above.
+
+Run the evaluation:
 
 ```powershell
 .\.venv\Scripts\python.exe evaluation/run.py --backend spacy
 .\.venv\Scripts\python.exe evaluation/run.py --backend transformers
 ```
 
-Toàn bộ suite sau M5: **75 tests passed**. Browser E2E thủ công và ảnh/GIF demo vẫn chưa thực hiện.
+See the [evaluation protocol](evaluation/README.md), [spaCy report](evaluation/results/test-spacy.json), and [Transformers report](evaluation/results/test-transformers.json). Reports include counts, timings, package versions, and dataset/source/model hashes without copying raw document content.
 
-Thời gian pytest không phải benchmark inference. Dữ liệu tổng hợp không đại diện tài liệu thực tế.
+## Testing
 
-- M2 (đã triển khai): duyệt từng occurrence, preview trước/sau, TXT labels và thống kê EMAIL.
-- M3 (đã triển khai): PHONE Bắc Mỹ có định dạng, CREDIT_CARD + Luhn, ADDRESS thử nghiệm, overlap rules và bộ chọn nhóm.
-- M4 (đã triển khai): spaCy baseline / Transformers tùy chọn, chunking text dài, local-only model loading; smoke hai model thật pass.
-- M5: evaluation đã hoàn thành (gold dev/test, metrics, real runs, provenance); **demo GIF/browser E2E còn chưa làm**.
-- Sau MVP: OCR và tiếng Việt.
+Latest recorded full-suite result: **75 tests passed** on the tested Windows/Python environment. This is a recorded result, not a live CI badge.
 
-## CV — mô tả đúng phần M1 đã xây
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+uv pip check
+```
 
-- Xây dựng ứng dụng Streamlit chạy local để phát hiện email và loại bỏ text nhạy cảm trong PDF bằng PyMuPDF redaction.
-- Thiết kế ánh xạ character offsets sang bounding boxes bằng pdfplumber, hỗ trợ xử lý độc lập từng lần xuất hiện và xác minh text sau redaction.
-- Viết unit/integration test với PDF tổng hợp cho chuỗi lặp, mapping nhiều dòng, PDF không có PII và các trường hợp không được hỗ trợ.
+Coverage includes:
+
+- Email patterns, formatted phones, Luhn validation, and experimental addresses.
+- Duplicate and overlapping entities; exact-span evaluation metrics.
+- Repeated strings, selective redaction, multiline mapping, and simple two-column PDFs.
+- Documents without PII, unsupported scans, malformed/encrypted input, and processing limits.
+- TXT Unicode, CRLF, BOM handling, invalid encoding, and label replacement.
+- Chunk offsets, token-budget guards, model errors, and PERSON pipeline integration.
+- Streamlit selection changes, output invalidation, previews, and download controls.
+
+Run an additional smoke check with **both real local NER models**:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/smoke_ner.py
+```
+
+Both real models have passed TXT and PDF smoke checks. Some adapter tests use fake models to isolate offset and chunking behavior. Streamlit tests use a mocked uploader; **manual browser end-to-end upload/download testing has not yet been completed**.
+
+## Privacy, limitations, and intended use
+
+### Local processing is not a complete security boundary
+
+The application does not intentionally write uploaded documents to disk or log their content. Documents are held in session memory; model resources may be cached. There is no guarantee of secure erasure from RAM, swap, browser caches, or downloaded files. Previews visibly expose document content to anyone viewing the screen.
+
+Use this as a **single-user local demo with trusted files**. Multi-user concurrency and deployment hardening have not been validated.
+
+### Input and PDF limitations
+
+- Maximum upload size: **10 MiB**. PDFs: **50 pages** and **300,000 glyphs**; TXT: **300,000 characters**.
+- Glyph limits are checked after page parsing. This is not a sandbox against malicious PDFs or decompression bombs.
+- OCR is not implemented. Image/vector-only pages are rejected; text pages containing images/vector content receive coverage warnings. Blank pages are handled separately. These checks are not a comprehensive scan detector.
+- Encrypted, rotated, cropped, nonzero-origin, and certain overlapping/unsupported glyph PDFs are rejected conservatively.
+- Complex columns, ligatures, unusual fonts, hidden text, and parser limitations may cause missed content or rejection. Simple two-column tests do not establish general layout support.
+- Metadata, annotations, attachments, form fields, images, and other content layers are **not comprehensively sanitized** and may retain sensitive information.
+- Region-based redaction can affect overlapping content. Always inspect the exported document.
+
+### Detection limitations
+
+- English is the primary language; Vietnamese NER and general international phone/address support are not implemented.
+- ADDRESS detection is experimental and incomplete, especially for full postal addresses, lowercase text, and PO boxes.
+- Luhn validates a checksum, not card issuance or ownership. Non-card identifiers may pass it; sensitive malformed card numbers may fail it.
+- NER and regex can both miss sensitive information or flag public content incorrectly.
+- The UI cannot currently add a manually drawn redaction region for a missed finding.
+- TXT input accepts UTF-8, including an input BOM; output uses UTF-8 without BOM. Preview is limited to 20,000 characters while export retains the full processed text.
+
+**A document with no findings is not necessarily free of sensitive information. Human review remains necessary.**
+
+## Roadmap
+
+- [x] Text-based PDF and UTF-8 TXT processing
+- [x] Occurrence-level review, previews, and verified PDF redaction
+- [x] Structured detectors and optional local NER backends
+- [x] Synthetic dev/test evaluation with reproducible reports
+- [ ] Manual browser end-to-end validation and a recorded demo
+- [ ] Interface polish; the proposed redesign has not been implemented
+- [ ] Independent annotation review and broader evaluation documents
+- [ ] Manual correction/redaction tools for missed findings
+- [ ] OCR with explicit page-level coverage tracking
+- [ ] Vietnamese language support
+
+## License and third-party dependencies
+
+A project-level license has not yet been selected. Public repository visibility alone does not grant reuse rights.
+
+PyMuPDF is available under AGPL/commercial licensing terms. Review its current terms, other dependency licenses, and model licenses before distributing, deploying, or using this project commercially. This README is not legal advice.
+
+## Portfolio summary
+
+- Built a local document-redaction application combining structured validation with interchangeable spaCy and Transformers NER backends.
+- Implemented occurrence-level PDF character-to-region mapping, true redaction, and post-export verification with unit and integration tests.
+- Designed an exact entity-level evaluation workflow with synthetic dev/test splits, model provenance, and separately measured loading/inference times.
