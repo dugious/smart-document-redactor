@@ -43,6 +43,7 @@ PERSON 100% here means only 13 of 13 tiny synthetic examples matched; **not 100%
 |---|---:|---:|
 | spaCy | 4.825 | 0.150 |
 | Transformers CPU | 8.943 | 2.405 |
+# thanks
 
 Windows 11 build 26200, Python 3.13.14; CPU reported by OS `Intel64 Family 6 Model 126 Stepping 5, GenuineIntel`, 8 logical CPUs; physical RAM reported 12,640,931,840 bytes (~11.77 GiB). CPU only. Model load measured once; detection has one fixed warmup excluded and median of 3 sequential full-dataset runs. Detection includes both NER and regex/overlap, excludes model load, dataset reading, file hashing, PDF handling and UI. No cross-run CPU-load control or statistical confidence intervals; speed varies by machine/background work.
 
