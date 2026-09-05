@@ -354,29 +354,7 @@ Use this as a **single-user local demo with trusted files**. Multi-user concurre
 - Metadata, annotations, attachments, form fields, images, and other content layers are **not comprehensively sanitized** and may retain sensitive information.
 - Region-based redaction can affect overlapping content. Always inspect the exported document.
 
-### Detection limitations
 
-- English is the primary language; Vietnamese NER and general international phone/address support are not implemented.
-- ADDRESS detection is experimental and incomplete, especially for full postal addresses, lowercase text, and PO boxes.
-- Luhn validates a checksum, not card issuance or ownership. Non-card identifiers may pass it; sensitive malformed card numbers may fail it.
-- NER and regex can both miss sensitive information or flag public content incorrectly.
-- The UI cannot currently add a manually drawn redaction region for a missed finding.
-- TXT input accepts UTF-8, including an input BOM; output uses UTF-8 without BOM. Preview is limited to 20,000 characters while export retains the full processed text.
-
-**A document with no findings is not necessarily free of sensitive information. Human review remains necessary.**
-
-## Roadmap
-
-- [x] Text-based PDF and UTF-8 TXT processing
-- [x] Occurrence-level review, previews, and verified PDF redaction
-- [x] Structured detectors and optional local NER backends
-- [x] Synthetic dev/test evaluation with reproducible reports
-- [ ] Manual browser end-to-end validation and a recorded demo
-- [ ] Interface polish; the proposed redesign has not been implemented
-- [ ] Independent annotation review and broader evaluation documents
-- [ ] Manual correction/redaction tools for missed findings
-- [ ] OCR with explicit page-level coverage tracking
-- [ ] Vietnamese language support
 
 ## License and third-party dependencies
 
